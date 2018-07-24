@@ -1,11 +1,12 @@
 #!/usr/bin/python
 '''
 Process a DTAL transcription into inputs for GED
-Original => DTAL transcription
-File1 => Original & FP/IA/PW removed
-File2 => File1 & Full-stop remove
-File3 => File2 & RE removed
-File4 => File3 & Capitalise first words
+* original_file => DTAL transcription
+* ged-input/
+    file1 => original & FP/IA/PW removed
+    file2 => file1 & Full-stop remove
+    file3 => file2 & RE removed
+    file4 => file3 & First words capitalised
 '''
 
 import sys
@@ -14,19 +15,6 @@ from os.path import isfile, join, exists
 import pandas as pd
 import datetime
 
-def summary(df):
-    summary_dict = dict()
-    summary_dict['num_token'] = len(df)
-    summary_dict['num_hesitation'] = len(df[df['token'] == '%hesitation%'])
-    summary_dict['num_unclear'] = len(df[df['token'] == '%unclear%'])
-    num_partial = 0
-    for i in range(len(df)):
-        if '%partial%' in df.loc[i]['token']:
-            num_partial += 1
-    summary_dict['num_partial'] = num_partial
-
-
-    return summary_dict
 
 def remove_repeition(input, output):
     input_file = open(input, 'r')
@@ -57,6 +45,30 @@ def remove_repeition(input, output):
     output_file = open(output, 'w')
     for line in output_lines:
         output_file.write(line)
+    output_file.close()
+
+def capitalise(input, output):
+    with open(input, 'r') as input_file:
+        input_lines = input_file.readlines()
+    output_file = open(output, 'w')
+
+    begining = True
+    for line in input_lines:
+        if line == '\n':
+            begining = True
+            output_file.write(line)
+            continue
+
+        if not begining:
+            output_file.write(line)
+        else:
+            items = line.split('\t')
+            token = items[0].capitalize()
+            error_type = items[1]
+            label = items[-1]
+            output_file.write('\t'.join([token, error_type, label]))
+            begining = False
+
     output_file.close()
 
 def main():
@@ -124,7 +136,12 @@ def main():
     file3 = outpath + '/ged-input/file3.tsv' #remove repetition
     remove_repeition(outpath + '/ged-input/file2.tsv', file3)
 
+    # capitalise first words file3 => file4
+    file4 = outpath + '/ged-input/file4.tsv'
+    capitalise(file3, file4)
+
 
 
 if __name__ == '__main__':
+    print(__doc__)
     main()

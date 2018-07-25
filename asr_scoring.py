@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 from pathlib import Path
 from sklearn.metrics import precision_recall_curve, roc_curve, auc, average_precision_score
 
-def get_scores(ged_output_path):
+def get_scores(ged_output_path, skip_repetition=True):
     data = pd.read_csv(ged_output_path, delim_whitespace=True, header=None)
     if(len(data.columns) == 5):
         columns = ['token', 'error_type', 'label', 'c_prob', 'i_prob']
@@ -51,18 +51,19 @@ def get_scores(ged_output_path):
         if row['token'] == '%hesitation%' or row['token'] == '%unclear%' or '%partial%' in row['token']:
             continue
 
-        # If it's a repition, the previous word already counted
-        if to_continue:
-            to_continue = False
-            continue
+        if skip_repetition:
+            # If it's a repition, the previous word already counted
+            if to_continue:
+                to_continue = False
+                continue
 
-        # ignore repetition
-        if idx < len(data)-1:
-            if row['token'].lower() == data.loc[idx+1]['token'].lower():
-                if data.loc[idx]['label'] == 'i':
-                    continue
-                elif row['label'] == 'c':
-                    to_continue = True
+            # ignore repetition
+            if idx < len(data)-1:
+                if row['token'].lower() == data.loc[idx+1]['token'].lower():
+                    if data.loc[idx]['label'] == 'i':
+                        continue
+                    elif row['label'] == 'c':
+                        to_continue = True
 
 
         c_prob = float(row['c_prob'].strip('c:'))
@@ -124,7 +125,7 @@ def plot_precision_reall_curve_multiple(scores_arr, name_arr, exp_path):
         precisions = []
         recalls = []
 
-        for threshold in np.linspace(0,1.0,11):
+        for threshold in np.linspace(0,1.0,20):
             true_pos = 0
             true_neg = 0
             false_pos = 0
@@ -151,12 +152,12 @@ def plot_precision_reall_curve_multiple(scores_arr, name_arr, exp_path):
             precisions.append(precision)
             recalls.append(recall)
 
-        plt.plot(recalls, precisions, '-', label=name)
+        plt.plot(recalls, precisions, 'o-', label=name)
 
     plt.xlabel('Recall')
     plt.ylabel('Precision')
     plt.title("Precision-Recall curve")
-    plt.ylim([0.0, 1.05])
+    plt.ylim([0.0, 0.6])
     plt.xlim([0.0, 1.0])
     plt.legend()
     save_path = exp_path + '/pr-curve.png'
@@ -175,8 +176,11 @@ def main():
     exp_path = os.path.dirname(ged_out_path)
     name_arr = [os.path.basename(f) for f in files]
 
-    for file in files:
-        scores = get_scores(file)
+    for i, file in enumerate(files):
+        if i<2:
+            scores = get_scores(file, skip_repetition=True)
+        else:
+            scores = get_scores(file, skip_repetition=False)
         print('----------------------------------------------------------')
         print(file)
         print_scores(scores)

@@ -116,7 +116,7 @@ def main():
             if label != 'c' and label != 'i':
                 continue
             # Ignore punctuations
-            if token in ['.', '!', ',', '(', ')']:
+            if token in ['.', '!', ',', '(', ')', '_']:
                 continue
 
             # Ignore hesitation (FP) / unclear (IA) / partial (PW)

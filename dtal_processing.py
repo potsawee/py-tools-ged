@@ -3,10 +3,10 @@
 Process a DTAL transcription into inputs for GED
 * original_file => DTAL transcription
 * ged-input/
-    file1 => original & FP/IA/PW removed
-    file2 => file1 & Full-stop remove
-    file3 => file2 & RE removed
-    file4 => file3 & First words capitalised
+    file1 => no punctuation & same case
+    file2 => file1 & strip FP/IA/PW
+    file3 => file2 & remove RE
+    file4 => file3 & basic case (first letter & 'I')
 '''
 
 import sys
@@ -60,7 +60,14 @@ def capitalise(input, output):
             continue
 
         if not begining:
-            output_file.write(line)
+            items = line.split('\t')
+            if items[0] != 'i':
+                output_file.write(line)
+            else: # 'i' => 'I'
+                token = 'I'
+                error_type = items[1]
+                label = items[-1]
+                output_file.write('\t'.join([token, error_type, label]))
         else:
             items = line.split('\t')
             token = items[0].capitalize()
@@ -73,7 +80,7 @@ def capitalise(input, output):
 
 def main():
     if(len(sys.argv) != 3):
-        print('Usage: python3 dtal_processing.py tsv outpath')
+        print('Usage: python3 asr_processing.py tsv outpath')
         return
 
     tsv = sys.argv[1]
@@ -84,51 +91,44 @@ def main():
         print('tsv path not exist')
         return
 
-    file1 = open(outpath + '/ged-input/file1.tsv', 'w') #remove FP, IA, PW
-    file2 = open(outpath + '/ged-input/file2.tsv', 'w') #remove Full-stops
+    file1 = open(outpath + '/ged-input/file1.tsv', 'w') # no punctuation & same case
+    file2 = open(outpath + '/ged-input/file2.tsv', 'w') # remove FP/IA/PW
     with open(tsv, 'r') as tsv_file:
-
         lines = tsv_file.readlines()
         for line in lines:
-
             # empty line
             if line == '\n':
                 file1.write(line)
                 file2.write(line)
                 continue
-
             items = line.split()
             if(len(items) < 2):
                 continue
-            token = items[0]
-            label = items[-1]
 
+            token = items[0].lower()
+            label = items[-1].strip()
             error_type = items[1]
 
-            # Ignore hesitation (FP) / unclear (IA) / partial (PW)
-            if token == '%hesitation%' or token == '%unclear%':
-                continue
-            if '%partial%' in token:
-                continue
-            if '+' in token:
-                token = token.replace('+','')
-            # DTAL added '_' when a word is missing
-            # it should not appear in the ASR output
-            if token == '_':
-                continue
+            line = '\t'.join([token, error_type, label])
+            line += '\n'
 
             # in gedtoktsv - week4 there are tokens like . c _ etc
             if label != 'c' and label != 'i':
                 continue
+            # Ignore punctuations
+            if token in ['.', '!', ',', '(', ')']:
+                continue
 
-            # Ignore full-stops
-            if token == '.':
+            # Ignore hesitation (FP) / unclear (IA) / partial (PW)
+            if token == '%hesitation%' or token == '%unclear%':
+                file1.write(line)
+                continue
+            if '%partial%' in token:
                 file1.write(line)
                 continue
 
             file1.write(line)
             file2.write(line)
-
     file1.close()
     file2.close()
 

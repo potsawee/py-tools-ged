@@ -122,7 +122,11 @@ def main():
             for k2, v2 in v1.items():
                 total += v2.tp + v2.fn
                 found += v2.tp
-            print("Other: R: {:.1f} Count: {:d}".format(found/total*100,total))
+            if total != 0:
+                r = found/total*100
+            else:
+                r = 0
+            print("Other: R: {:.1f} Count: {:d}".format(r,total))
         else:
             for k2, v2 in v1.items():
                 print(k1+k2+":  ", end='')

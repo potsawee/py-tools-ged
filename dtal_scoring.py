@@ -87,8 +87,14 @@ def get_scores(ged_output_path, skip_repetition=True):
     # debug_file.close()
 
     counted_token = true_positive+true_negative+false_positive+false_negative
-    p = true_positive / (true_positive+false_positive)
-    r = true_positive / (true_positive+false_negative)
+    if true_positive+false_positive != 0:
+        p = true_positive / (true_positive+false_positive)
+    else:
+        p = 0
+    if true_positive+false_negative != 0:
+        r = true_positive / (true_positive+false_negative)
+    else:
+        r = 0
     if p != 0 or r != 0:
         f1 = 2 * (p*r)/(p+r)
         f05 = 1.25 * (p*r)/(0.25*p + r)

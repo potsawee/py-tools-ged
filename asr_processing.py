@@ -7,9 +7,11 @@ Process a CUED-ASR transcription into inputs for GED
     file2 => file1 & strip FP/IA/PW
     file3 => file2 & remove RE
     file4 => file3 & basic case (first letter & 'I')
+    file5 => file4 & remove ASR insertion
 '''
 
 import sys
+import os
 from os import listdir
 from os.path import isfile, join, exists
 import pandas as pd
@@ -78,6 +80,29 @@ def capitalise(input, output):
 
     output_file.close()
 
+def remove_asri(input, output):
+    '''
+    Remove ASR Insertion
+    '''
+    with open(input, 'r') as input_file:
+        input_lines = input_file.readlines()
+    output_file = open(output, 'w')
+
+    for line in input_lines:
+        if line == '\n':
+            output_file.write(line)
+            continue
+
+        items = line.split('\t')
+        token = items[0]
+        error_type = items[1]
+        label = items[-1]
+
+        if error_type == "ASRI":
+            continue
+        output_file.write('\t'.join([token, error_type, label]))
+    output_file.close()
+
 def main():
     if(len(sys.argv) != 3):
         print('Usage: python3 asr_processing.py tsv outpath')
@@ -116,7 +141,7 @@ def main():
             if label != 'c' and label != 'i':
                 continue
             # Ignore punctuations
-            if token in ['.', '!', ',', '(', ')']:
+            if token in ['.', '!', ',', '(', ')', '_']:
                 continue
 
             # Ignore hesitation (FP) / unclear (IA) / partial (PW)
@@ -140,6 +165,13 @@ def main():
     file4 = outpath + '/ged-input/file4.tsv'
     capitalise(file3, file4)
 
+    # remove ASR insertion file4 => file5
+    file5_1 = outpath + '/ged-input/file5_1.tsv'
+    file5 = outpath + '/ged-input/file5.tsv'
+    remove_asri(file4, file5_1)
+    # re capitalise
+    capitalise(file5_1, file5)
+    os.remove(file5_1)
 
 
 if __name__ == '__main__':

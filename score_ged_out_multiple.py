@@ -33,17 +33,42 @@ def get_scores(ged_output_path):
     false_positive = 0
     false_negative = 0
     i_prob = []
-    for idx, row in data.iterrows():
+    actual_label = []
+    to_continue = False
+
+    debug_file = open('/home/alta/BLTSpeaking/ged-pm574/dtal/eval3_288/debug.txt', 'a')
+    debug_file.write('----------------------------\n')
+
+    for idx in range(len(data)):
+
+        row = data.loc[idx]
 
         # do not count 'hesitation', 'unclear', 'partial'
         if row['token'] == '%hesitation%' or row['token'] == '%unclear%' or '%partial%' in row['token']:
+            # debug_file.write("idx={:d}, {}\n".format(idx, row['token']))
             continue
+
+        # If it's a repition, the previous word already counted
+        if to_continue:
+            to_continue = False
+            debug_file.write("idx={:d}, {}\n".format(idx, row['token']))
+            continue
+
+        # ignore repetition
+        if idx < len(data)-1:
+            if row['token'].lower() == data.loc[idx+1]['token'].lower():
+                if data.loc[idx]['label'] == 'i':
+                    debug_file.write("idx={:d}, {}\n".format(idx, row['token']))
+                    continue
+                elif row['label'] == 'c':
+                    to_continue = True
 
 
         c_prob = float(row['c_prob'].strip('c:'))
         i_prob.append(1-c_prob)
         predict = 'c' if c_prob >= 0.5 else 'i'
         actual = row['label']
+        actual_label.append(actual)
         if actual == 'i' and predict == 'i':
             true_positive += 1
         elif actual == 'c' and predict == 'c':
@@ -55,8 +80,11 @@ def get_scores(ged_output_path):
         else:
             raise Expection
 
-    total = true_positive+true_negative+false_positive+false_negative
-    
+    debug_file.write('----------------------------\n')
+    debug_file.close()
+
+    counted_token = true_positive+true_negative+false_positive+false_negative
+
     p = true_positive / (true_positive+false_positive)
     r = true_positive / (true_positive+false_negative)
     if p != 0 or r != 0:
@@ -65,25 +93,27 @@ def get_scores(ged_output_path):
     else:
         f1 = 0
         f05 = 0
-    accuracy = (true_positive+true_negative)/total
+    accuracy = (true_positive+true_negative)/counted_token
 
-    scores = {'total': total,
+    scores = {'total_token': len(data),
+             'counted_token': counted_token,
              'p': p, 'r': r,
              'f1': f1, 'f05': f05,
              'accuracy': accuracy,
              'i_prob': i_prob,
-             'binary_label': [data['label'] == 'i']}
+             'actual_label': actual_label}
     return scores
 
 def print_scores(scores):
 
     print('----------------------------------------------------------')
-    print('Total Token: {:d}'.format(scores['total']))
-    print('Precision:   {:.1f}%'.format(scores['p']*100))
-    print('Recall:      {:.1f}%'.format(scores['r']*100))
-    print('F1 score:    {:.1f}%'.format(scores['f1']*100))
-    print('F0.5 score:  {:.1f}%'.format(scores['f05']*100))
-    print('Accuracy:    {:.1f}%'.format(scores['accuracy']*100))
+    print('Total Token:   {:d}'.format(scores['total_token']))
+    print('Counted Token: {:d}'.format(scores['counted_token']))
+    print('Precision:     {:.1f}%'.format(scores['p']*100))
+    print('Recall:        {:.1f}%'.format(scores['r']*100))
+    print('F1 score:      {:.1f}%'.format(scores['f1']*100))
+    print('F0.5 score:    {:.1f}%'.format(scores['f05']*100))
+    print('Accuracy:      {:.1f}%'.format(scores['accuracy']*100))
 #     print('----------------------------------------------------------')
 
 def plot_precision_reall_curve_multiple(scores_arr, name_arr, exp_path):
@@ -91,13 +121,7 @@ def plot_precision_reall_curve_multiple(scores_arr, name_arr, exp_path):
     plt.figure()
     for scores,name in zip(scores_arr,name_arr):
         preds = scores['i_prob']
-        binary_label = scores['binary_label']
-        test_label = []
-        for b in binary_label[0]:
-            if b == True:
-                test_label.append(1)
-            else:
-                test_label.append(0)
+        actual_label = scores['actual_label']
 
         precisions = []
         recalls = []
@@ -107,14 +131,14 @@ def plot_precision_reall_curve_multiple(scores_arr, name_arr, exp_path):
             true_neg = 0
             false_pos = 0
             false_neg = 0
-            for pred, incorrect in zip(preds, binary_label[0]):
+            for pred, label in zip(preds, actual_label):
                 if(pred > threshold):
-                    if(incorrect):
+                    if(label == 'i'):
                         true_pos += 1
                     else: # correct
                         false_pos += 1
                 else: # pred < threshold
-                    if(incorrect):
+                    if(label == 'i'):
                         false_neg += 1
                     else:
                         true_neg += 1

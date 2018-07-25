@@ -8,7 +8,7 @@ import sys
 import os
 import numpy as np
 import pandas as pd
-# import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 from pathlib import Path
 from sklearn.metrics import precision_recall_curve, roc_curve, auc, average_precision_score
 
@@ -172,8 +172,11 @@ def plot_precision_reall_curve(scores, name, f05=True):
     plt.ylim([0.0, 1.05])
     plt.xlim([0.0, 1.0])
     # plt.title('Precision-Recall curve: AP={0:0.3f}'.format(average_precision))
-    plt.show()
-#     plt.savefig(name + '.png')
+    # plt.show()
+    # print('saving...')
+    plt.savefig(name + '.png')
+
+
 
 def main():
     if(len(sys.argv) != 2):
@@ -182,7 +185,8 @@ def main():
 
     file_path = sys.argv[1]
     my_file = Path(file_path)
-    name = os.path.basename(file_path)
+    dirname = os.path.dirname(file_path)
+    name = dirname + '/../' + os.path.basename(file_path)
     if not my_file.is_file():
         print(file_path + ': not exist')
         return
@@ -192,7 +196,7 @@ def main():
     print(file_path)
     print_scores(scores)
 
-#     plot_precision_reall_curve(scores,name)
+    plot_precision_reall_curve(scores,name)
     # plot_roc_curve(scores)
 
 

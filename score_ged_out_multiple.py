@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 from pathlib import Path
 from sklearn.metrics import precision_recall_curve, roc_curve, auc, average_precision_score
 
-def get_scores(ged_output_path, count_dict=None):
+def get_scores(ged_output_path):
     data = pd.read_csv(ged_output_path, delim_whitespace=True, header=None)
     if(len(data.columns) == 5):
         columns = ['token', 'error_type', 'label', 'c_prob', 'i_prob']
@@ -34,6 +34,12 @@ def get_scores(ged_output_path, count_dict=None):
     false_negative = 0
     i_prob = []
     for idx, row in data.iterrows():
+
+        # do not count 'hesitation', 'unclear', 'partial'
+        if row['token'] == '%hesitation%' or row['token'] == '%unclear%' or '%partial%' in row['token']:
+            continue
+
+
         c_prob = float(row['c_prob'].strip('c:'))
         i_prob.append(1-c_prob)
         predict = 'c' if c_prob >= 0.5 else 'i'
@@ -49,9 +55,8 @@ def get_scores(ged_output_path, count_dict=None):
         else:
             raise Expection
 
-    assert len(data) == true_positive + true_negative + false_positive + false_negative
-
-    total = len(data)
+    total = true_positive+true_negative+false_positive+false_negative
+    
     p = true_positive / (true_positive+false_positive)
     r = true_positive / (true_positive+false_negative)
     if p != 0 or r != 0:

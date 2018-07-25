@@ -81,8 +81,10 @@ def main():
     # refer to www.cl.cam.ac.uk/techreports/UCAM-CL-TR-915.pdf
     major_types = ['F', 'M', 'R', 'U', 'Other']
     word_classes = ['N','V','A','D','J','T','Y','_']
-    error1 = OrderedDict({'F': OrderedDict(), 'M': OrderedDict(), 'R': OrderedDict(), 'U': OrderedDict(), 'Other': OrderedDict()})
+    # error1 = OrderedDict({'F': OrderedDict(), 'M': OrderedDict(), 'R': OrderedDict(), 'U': OrderedDict(), 'Other': OrderedDict()})
+    error1 = OrderedDict()
     for major in major_types:
+        error1[major] = OrderedDict()
         for w in word_classes:
             error1[major][w] = ErrorCount()
 
@@ -90,6 +92,10 @@ def main():
         err = row['error_type']
         label = row['label']
         pred = row['prediction']
+
+        if label == 'c':
+            continue
+
         # ignore the second type of error for now
         major = err[0]
         try:
@@ -111,10 +117,16 @@ def main():
 
     for k1, v1 in error1.items():
         if k1 == 'Other':
-            continue
-        for k2, v2 in v1.items():
-            print(k1+k2+":  ", end='')
-            v2.print_eval()
+            total = 0
+            found = 0
+            for k2, v2 in v1.items():
+                total += v2.tp + v2.fn
+                found += v2.tp
+            print("Other: R: {:.1f} Count: {:d}".format(found/total*100,total))
+        else:
+            for k2, v2 in v1.items():
+                print(k1+k2+":  ", end='')
+                v2.print_eval()
 
 
 if __name__ == '__main__':

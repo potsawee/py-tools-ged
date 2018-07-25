@@ -60,12 +60,10 @@ def main():
 
     new_files =[f.replace(original_ext, target_ext) for f in orignal_files]
 
-    print(orignal_files)
-    print(new_files)
+    for original, new in zip(orignal_files, new_files):
+        remove_punctuation(original, new)
 
-
-
-
+    print('clc_processing done!')
 
 if __name__ == "__main__":
     main()

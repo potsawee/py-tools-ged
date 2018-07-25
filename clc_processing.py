@@ -10,12 +10,13 @@ to re-train the sequence-labeler
     [1] remove punctuations ------------------------ (version6 / .ged.v6.tsv)
     [2] basic case (caplitalise first word & I) ---- (Version7 / .ged.v7.tsv)
 Input:
-    [1] path: the directory containing files to be processed
+    [1] original_path: the directory containing files to be processed
     [2] original_ext: the extension of the files
-    [3] target_ext: the extension of the processed files
+    [3] target_path: the directory to place the process files
+    [4] target_ext: the extension of the processed files
 Output:
     [1] the processed files with the specified extension
-        in the same directory.
+        in the target directory.
 Usage:
     python3 clc_processing.py /home/alta/CLC/LNRC/exams/IELTS ged.spell.tsv
 '''
@@ -48,17 +49,23 @@ def remove_punctuation(input, output):
 
 
 def main():
-    if(len(sys.argv) != 4):
-        print('Usage: python3 clc_processing.py path original_ext target_ext')
+    if(len(sys.argv) != 5):
+        print('Usage: python3 clc_processing.py original_path original_ext target_path target_ext')
         return
-    path = sys.argv[1]
+    original_path = sys.argv[1]
     original_ext = sys.argv[2]
-    target_ext = sys.argv[3]
+    target_path = sys.argv[3]
+    target_ext = sys.argv[4]
 
-    orignal_files = [os.path.join(path, f) for f in os.listdir(path) \
-            if (os.path.isfile(os.path.join(path, f))) and original_ext in f]
+    orignal_files = [os.path.join(original_path, f) for f in os.listdir(original_path) \
+            if (os.path.isfile(os.path.join(original_path, f))) and original_ext in f]
 
-    new_files =[f.replace(original_ext, target_ext) for f in orignal_files]
+    new_files = [os.path.join(target_path, f) for f in os.listdir(original_path) \
+            if (os.path.isfile(os.path.join(original_path, f))) and original_ext in f]
+
+    new_files =[f.replace(original_ext, target_ext) for f in new_files]
+
+    os.makedirs(target_path, exist_ok=True)
 
     for original, new in zip(orignal_files, new_files):
         remove_punctuation(original, new)

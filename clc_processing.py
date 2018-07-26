@@ -47,6 +47,49 @@ def remove_punctuation(input, output):
 
             f2.write(line)
 
+def basic_case(input, output):
+    '''
+    [1] Capitalise first word in each sentence & I
+        by detecting empty lines as sentence boundaries
+    [2] To use basic case:
+        Call main2
+            e.g. python3 clc_processing.py mytsv.v6.tsv mytsv.v7.tsv
+
+    '''
+    with open(input, 'r') as f1:
+        lines = f1.readlines()
+
+    with open(output, 'w') as f2:
+
+        begining = True
+        for line in lines:
+            if line == '\n':
+                begining = True
+                f2.write(line)
+                continue
+
+            line = line.lower()
+
+            if not begining:
+                items = line.split()
+                if items[0] != 'i':
+                    f2.write(line)
+                else:
+                    f2.write("{}\t{}\n".format('I', items[1]))
+
+            else:
+                items = line.split()
+                token = items[0].capitalize()
+                label = items[1]
+                f2.write("{}\t{}\n".format(token, label))
+                begining = False
+
+
+def main2():
+    input = sys.argv[1]
+    output = sys.argv[2]
+    basic_case(input, output)
+
 
 def main():
     if(len(sys.argv) != 5):
@@ -74,3 +117,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    # main2()

@@ -5,15 +5,15 @@ import csv
 class Embedding(object):
     def __init__(self, path, skiprows=None):
         self.path = path
-        self.words = pd.read_table(path, sep=" ", index_col=0, header=None, quoting=csv.QUOTE_NONE, skiprows=skiprows)
-        self.words_matrix = self.words.as_matrix()
+        self.words = pd.read_table(path, delim_whitespace=True, index_col=0, header=None, quoting=csv.QUOTE_NONE, skiprows=skiprows)
+        self.words_matrix = self.words.values
 
     def vec(self, word):
         if word not in self.words.index:
             print("{} not in the embedding model".format(word))
             return
         else:
-            return self.words.loc[word].as_matrix()
+            return self.words.loc[word].values
 
     def find_closest_words(self, word, num=1):
         if word not in self.words.index:

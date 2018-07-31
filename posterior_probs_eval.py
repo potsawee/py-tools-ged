@@ -12,9 +12,10 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from pathlib import Path
 from sklearn.metrics import precision_recall_curve, roc_curve, auc, average_precision_score
+import csv
 
 def get_scores(ged_output_path):
-    data = pd.read_csv(ged_output_path, delim_whitespace=True, header=None)
+    data = pd.read_csv(ged_output_path, delim_whitespace=True, header=None, quoting=csv.QUOTE_NONE)
     if(len(data.columns) == 5):
         columns = ['token', 'error_type', 'label', 'c_prob', 'i_prob']
     elif(len(data.columns) == 4):
@@ -40,6 +41,9 @@ def get_scores(ged_output_path):
     for idx in range(len(data)):
 
         row = data.loc[idx]
+
+        # if row['token'] == '<s>' or row['token'] == '</s>':
+        #     continue
 
         c_prob = float(row['c_prob'].strip('c:'))
         i_prob.append(1-c_prob)
@@ -106,7 +110,7 @@ def plot_precision_reall_curve_multiple(scores_arr, name_arr, exp_path):
         precisions = []
         recalls = []
 
-        for threshold in np.linspace(0,1.0,20):
+        for threshold in np.linspace(0,0.95,20):
             true_pos = 0
             true_neg = 0
             false_pos = 0
@@ -133,7 +137,7 @@ def plot_precision_reall_curve_multiple(scores_arr, name_arr, exp_path):
             precisions.append(precision)
             recalls.append(recall)
 
-        plt.plot(recalls, precisions, 'o-', label=name)
+        plt.plot(recalls, precisions, '.-', label=name)
 
     plt.xlabel('Recall')
     plt.ylabel('Precision')
@@ -151,7 +155,8 @@ def main():
 
     ged_out_path = sys.argv[1]
 
-    files = [join(ged_out_path, f) for f in listdir(ged_out_path) if (isfile(join(ged_out_path, f)))]
+    files = [join(ged_out_path, f) for f in listdir(ged_out_path) if (isfile(join(ged_out_path, f))) and '.exc' not in f]
+    print(files)
     files.sort()
     scores_arr = []
     exp_path = os.path.dirname(ged_out_path)

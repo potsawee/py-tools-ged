@@ -1,18 +1,18 @@
 #!/usr/bin/python
 '''
-Plot PR-curve for all files (ged-output) in a specified folder
+Plot PR-curve for all files (ged-output) in the specified folder
 '''
 
 import sys
 import os
-from os import listdir
-from os.path import isfile, join, exists
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-from pathlib import Path
-from sklearn.metrics import precision_recall_curve, roc_curve, auc, average_precision_score
 import csv
+import string
+
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 
 def get_scores(ged_output_path):
     data = pd.read_csv(ged_output_path, delim_whitespace=True, header=None, quoting=csv.QUOTE_NONE)
@@ -36,7 +36,8 @@ def get_scores(ged_output_path):
     i_prob = []
     actual_label = []
 
-
+    punc_set = set(string.punctuation)
+    i_label_count = 0
 
     for idx in range(len(data)):
 
@@ -44,11 +45,15 @@ def get_scores(ged_output_path):
 
         # if row['token'] == '<s>' or row['token'] == '</s>':
         #     continue
+        if row['token'] == '.' or row['token'] in punc_set:
+            continue
 
         c_prob = float(row['c_prob'].strip('c:'))
         i_prob.append(1-c_prob)
         predict = 'c' if c_prob >= 0.5 else 'i'
         actual = row['label']
+        if actual == 'i':
+            i_label_count += 1
         actual_label.append(actual)
         if actual == 'i' and predict == 'i':
             true_positive += 1
@@ -81,6 +86,7 @@ def get_scores(ged_output_path):
 
     scores = {'total_token': len(data),
              'counted_token': counted_token,
+             'i_label_count': i_label_count,
              'p': p, 'r': r,
              'f1': f1, 'f05': f05,
              'accuracy': accuracy,
@@ -93,6 +99,7 @@ def print_scores(scores):
     print('----------------------------------------------------------')
     print('Total Token:   {:d}'.format(scores['total_token']))
     print('Counted Token: {:d}'.format(scores['counted_token']))
+    print('i_count:       {:d}'.format(scores['i_label_count']))
     print('Precision:     {:.1f}%'.format(scores['p']*100))
     print('Recall:        {:.1f}%'.format(scores['r']*100))
     print('F1 score:      {:.1f}%'.format(scores['f1']*100))
@@ -155,7 +162,7 @@ def main():
 
     ged_out_path = sys.argv[1]
 
-    files = [join(ged_out_path, f) for f in listdir(ged_out_path) if (isfile(join(ged_out_path, f))) and '.exc' not in f]
+    files = [os.path.join(ged_out_path, f) for f in os.listdir(ged_out_path) if (os.path.isfile(os.path.join(ged_out_path, f))) and '.tsv' in f]
     print(files)
     files.sort()
     scores_arr = []

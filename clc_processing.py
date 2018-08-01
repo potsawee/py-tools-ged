@@ -90,6 +90,11 @@ def main2():
     output = sys.argv[2]
     basic_case(input, output)
 
+def main3():
+    input = sys.argv[1]
+    output = sys.argv[2]
+    remove_punctuation(input, output)
+
 
 def main():
     if(len(sys.argv) != 5):
@@ -116,5 +121,6 @@ def main():
     print('clc_processing done!')
 
 if __name__ == "__main__":
-    main()
+    # main()
     # main2()
+    main3()

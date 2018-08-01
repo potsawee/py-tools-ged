@@ -50,8 +50,7 @@ def true_lowercase(input, output, start_tag='.', end_tag='.'):
                 continue         # there should not be more full-stops
 
             token = items[0].lower()
-            label = items[1]
-
+            label = items[-1]
             sentence.append((token,label))
 
 def period_only(input,output):

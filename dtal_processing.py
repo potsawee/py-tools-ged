@@ -117,6 +117,7 @@ def main():
                 continue
             # Ignore punctuations
             if token in ['.', '!', ',', '(', ')', '_']:
+            # if token in ['!', ',', '(', ')', '_']:
                 continue
 
             # Ignore hesitation (FP) / unclear (IA) / partial (PW)

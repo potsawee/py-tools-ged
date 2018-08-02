@@ -4,6 +4,7 @@ import sys
 import os
 import csv
 import string
+from collections import OrderedDict
 
 import matplotlib
 matplotlib.use('Agg')
@@ -27,7 +28,8 @@ class GedOutParser(object):
         precisions = []
         recalls = []
         f05_scores = []
-        for threshold in np.linspace(0,0.95,20):
+        thresholds = np.linspace(0,0.95,20)
+        for threshold in thresholds:
             true_pos = 0
             true_neg = 0
             false_pos = 0
@@ -68,9 +70,11 @@ class GedOutParser(object):
         idx = f05_scores.index(F05)
         P = precisions[idx]
         R = recalls[idx]
+        threshold = thresholds[idx]
 
         return {"P": P, "R": R, "F05": F05,
-                "precisions": precisions, "recalls": recalls}
+                "precisions": precisions, "recalls": recalls,
+                'threshold': threshold}
 
     def read(self, path, name=None, skip_options=[]):
         data = pd.read_csv(path, delim_whitespace=True, header=None, quoting=csv.QUOTE_NONE)
@@ -116,11 +120,12 @@ class GedOutParser(object):
                 'R': pr_dict['R'],
                 'F05': pr_dict['F05'],
                 'precisions': pr_dict['precisions'],
-                'recalls': pr_dict['recalls']}
+                'recalls': pr_dict['recalls'],
+                'threshold': pr_dict['threshold']}
 
         self.scores.append(score)
 
-    def get_index(self):
+    def show_indices(self):
         for i in range(self.counter):
             print("index:{}, name:{}, path:{}".format(i, self.names[i], self.paths[i]))
 
@@ -160,3 +165,128 @@ class GedOutParser(object):
             print('P:       {:.1f}%'.format(score['P']*100))
             print('R:       {:.1f}%'.format(score['R']*100))
             print('F0.5:    {:.1f}%'.format(score['F05']*100))
+
+    def error_type_recall_rate(self, index):
+        if self.num_columns <= 2:
+            print("No Error Type Column")
+            return
+
+        data = pd.read_csv(self.paths[index], delim_whitespace=True, header=None, quoting=csv.QUOTE_NONE)
+        data.columns = self.columns
+
+        # if i_prob >= threshold => predict 'i'
+        threshold = self.scores[index]['threshold']
+        preds= []
+        for idx, row in data.iterrows():
+            i_prob = float(row['i_prob'].strip('i:'))
+            pred = 'i' if i_prob >= threshold else 'c'
+            preds.append(pred)
+        data['prediction'] = preds
+
+
+        # ---- error type ---- #
+        # refer to www.cl.cam.ac.uk/techreports/UCAM-CL-TR-915.pdf
+
+        print('----------------------------------------------------------')
+        print('File =', self.paths[index])
+        print('----------------------------------------------------------')
+
+        major_types = ['F', 'M', 'R', 'U', 'Other']
+        word_classes = ['N','V','A','D','J','T','Y','_']
+        # error1 = OrderedDict({'F': OrderedDict(), 'M': OrderedDict(), 'R': OrderedDict(), 'U': OrderedDict(), 'Other': OrderedDict()})
+        error1 = OrderedDict()
+        for major in major_types:
+            error1[major] = OrderedDict()
+            for w in word_classes:
+                error1[major][w] = ErrorCount()
+
+        for idx, row in data.iterrows():
+            err = row['error_type']
+            label = row['label']
+            pred = row['prediction']
+
+            if label == 'c':
+                continue
+
+            # ignore the second type of error for now
+            major = err[0]
+            try:
+                w_class = err[1]
+            except IndexError:
+                w_class = None
+
+            if major in major_types: # F, M, R, U
+                if w_class in word_classes: # 'N','V','A','D','J','T','Y'
+                    error1[major][w_class].add(label, pred)
+                else:
+                    error1[major]['_'].add(label,pred)
+            else:
+                if w_class in word_classes: # 'N','V','A','D','J','T','Y'
+                    error1['Other'][w_class].add(label, pred)
+                else:
+                    error1['Other']['_'].add(label,pred)
+
+
+        for k1, v1 in error1.items():
+            if k1 == 'Other':
+                total = 0
+                found = 0
+                for k2, v2 in v1.items():
+                    total += v2.tp + v2.fn
+                    found += v2.tp
+                if total != 0:
+                    r = found/total*100
+                else:
+                    r = 0
+                print("Other: R: {:.1f} Count: {:d}".format(r,total))
+            else:
+                for k2, v2 in v1.items():
+                    print(k1+k2+":  ", end='')
+                    v2.print_eval()
+
+class ErrorCount(object):
+    def __init__(self):
+        self.tp = 0
+        self.tn = 0
+        self.fp = 0 # This is always ZERO  since the labeler can't tell which type of error it is
+        self.fn = 0
+
+    def total(self):
+        return self.tp+self.tn+self.fp+self.fn
+
+    # Precision is always 0 or 1
+    # because the labeler can't tell which type of error it is
+    def precision(self):
+        if self.tp == 0 and self.fp == 0:
+            return 0
+        else:
+            return self.tp/(self.tp+self.fp)
+
+    def recall(self):
+        if self.tp == 0 and self.fn == 0:
+            return 0
+        else:
+            return self.tp/(self.tp+self.fn)
+
+    def f05(self):
+        if self.precision()==0 or self.recall()==0:
+            return 0
+        else:
+            return 1.25*(self.precision()*self.recall())/(0.25*self.precision()+self.recall())
+
+    def add(self, label, pred):
+        if label == 'i' and pred == 'i':
+            self.tp += 1
+        elif label == 'c' and pred == 'c':
+            self.tn += 1
+        elif label == 'c' and pred == 'i':
+            self.fp += 1
+        elif label == 'i' and pred == 'c':
+            self.fn += 1
+
+    def print_eval(self):
+        # print(self.f05(), self.total())
+        print("R: {:04.1f} Count: {:d}".format(
+                self.recall()*100,
+                self.total()
+                ))

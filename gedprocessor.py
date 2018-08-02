@@ -69,12 +69,20 @@ class GedProcessor(object):
         if input == None:
             input = self.current
 
+        dot = ['.']
+        dot += ['_'] * (self.num_columns - 2)
+        dot += 'c'
+
         beginning = True
         for word in input:
             if word[0] == '\n':
                 beginning = True
+                processed.append(dot)
                 processed.append(word)
                 continue
+
+            if word[0] == '.': # full stops at start/end added manually
+                continue       # there should not be more full-stops
 
             if not beginning:
                 if word[0] != 'i':

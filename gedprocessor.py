@@ -78,7 +78,9 @@ class GedProcessor(object):
 
             if not beginning:
                 if word[0] != 'i':
-                    processed.append(word)
+                    # processed.append(word)
+                    w = word[0].lower()
+                    processed.append([w] + word[1:])
                 else: # 'i' => 'I'
                     processed.append(['I'] + word[1:])
             else:

@@ -34,7 +34,10 @@ def main():
 
     for i, file in enumerate(files):
         name = os.path.basename(file)
-        parser.read(file, name=name)
+        if num_columns == 5: #DTAL/ASR
+            parser.read(file, name=name, skip_options=[1,2,3,4])
+        else:
+            parser.read(file, name=name)
 
     parser.print_scores()
     parser.plot_pr_curves(savepath=exp_path+'/pr-curve.png')

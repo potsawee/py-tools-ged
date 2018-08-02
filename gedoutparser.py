@@ -100,7 +100,12 @@ class GedOutParser(object):
             if 2 in skip_options: # do not score punctuation
                 if row['token'] in punc_set:
                     continue
-
+            if 3 in skip_options: # unclear
+                if row['token'] == '%unclear%':
+                    continue
+            if 4 in skip_options: # partial
+                if '%partial%' in row['token']:
+                    continue
             i_prob = float(row['i_prob'].strip('i:'))
             i_probs.append(i_prob)
             labels.append(row['label'])

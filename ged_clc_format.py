@@ -27,7 +27,7 @@ def main():
 
     # file1
     file1 = outdir + '/' + name + '.marek.' + extension
-    processor.period_only(input=processor.original)
+    processor.basiccase(input=processor.original)
     processor.write(file1)
 
     # file2
@@ -37,7 +37,7 @@ def main():
 
     # file3
     file3 = outdir + '/' + name + '.nopunc.' + extension
-    processor.truelowercase(input=processor.current)
+    processor.period_only(input=processor.current)
     processor.write(file3)
 
 

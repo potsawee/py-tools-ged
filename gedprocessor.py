@@ -11,6 +11,10 @@ class GedProcessor(object):
         with open(path, 'r') as file:
             lines = file.readlines()
 
+        print("----------------------------------------")
+        print("Original File: {}".format(path))
+        print("----------------------------------------")
+
         original = []
         for i, line in enumerate(lines):
             if line == '\n':
@@ -117,7 +121,7 @@ class GedProcessor(object):
 
         self.current = processed
 
-    def remove_repeition(self, input=None):
+    def remove_repetition(self, input=None):
         processed = []
         if input == None:
             input = self.current
@@ -154,4 +158,4 @@ class GedProcessor(object):
                     file.write('\n')
                 else:
                     file.write('\t'.join(word) + '\n')
-        print("writing done!")
+        print("writing {} done!".format(outpath))

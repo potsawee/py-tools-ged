@@ -19,6 +19,7 @@ class GedOutParser(object):
     def __init__(self, columns=['token', 'error_type', 'label', 'c_prob', 'i_prob']):
         self.columns = columns
         self.num_columns = len(columns)
+        self.raw_data = []
         self.scores = []
         self.names = []
         self.paths = []
@@ -90,6 +91,7 @@ class GedOutParser(object):
 
         i_probs = []
         labels = []
+        tokens = []
         for idx in range(len(data)):
 
             row = data.loc[idx]
@@ -106,21 +108,25 @@ class GedOutParser(object):
             if 4 in skip_options: # partial
                 if '%partial%' in row['token']:
                     continue
+
+            tokens.append(row['token'])
             i_prob = float(row['i_prob'].strip('i:'))
             i_probs.append(i_prob)
             labels.append(row['label'])
 
+        raw_data = {'tokens': tokens, 'i_probs': i_probs, 'labels': labels}
+
         total = len(data)
         count = len(labels)
-        i_count = 0
+        error = 0
         for label in labels:
             if label == 'i':
-                i_count += 1
+                error += 1
         pr_dict = self.precision_recall(i_probs, labels)
 
         score = {'total': total,
                 'count': count,
-                'i_count': i_count,
+                'error': error,
                 'P': pr_dict['P'],
                 'R': pr_dict['R'],
                 'F05': pr_dict['F05'],
@@ -128,6 +134,7 @@ class GedOutParser(object):
                 'recalls': pr_dict['recalls'],
                 'threshold': pr_dict['threshold']}
 
+        self.raw_data.append(raw_data)
         self.scores.append(score)
 
     def show_indices(self):
@@ -166,7 +173,7 @@ class GedOutParser(object):
             print('----------------------------------------------------------')
             print('total:   {:d}'.format(score['total']))
             print('count:   {:d}'.format(score['count']))
-            print('i_count: {:d}'.format(score['i_count']))
+            print('error:   {:d}'.format(score['error']))
             print('P:       {:.1f}%'.format(score['P']*100))
             print('R:       {:.1f}%'.format(score['R']*100))
             print('F0.5:    {:.1f}%'.format(score['F05']*100))
@@ -248,6 +255,92 @@ class GedOutParser(object):
                 for k2, v2 in v1.items():
                     print(k1+k2+":  ", end='')
                     v2.print_eval()
+
+    def probs_diff(self, idx1, idx2, max_num=20):
+        if(self.scores[idx1]['count'] != self.scores[idx2]['count']):
+            print('two files do not have the same counts, {} != {}'.format(
+                    self.scores[idx1]['count'],
+                    self.scores[idx2]['count']))
+            return
+        count = self.scores[idx1]['count']
+        diff = []
+        for idx in range(count):
+            token1 = self.raw_data[idx1]['tokens'][idx]
+            label1 = self.raw_data[idx1]['labels'][idx]
+            i1 = self.raw_data[idx1]['i_probs'][idx]
+
+            token2 = self.raw_data[idx2]['tokens'][idx]
+            label2 = self.raw_data[idx2]['labels'][idx]
+            i2 = self.raw_data[idx2]['i_probs'][idx]
+
+            if token1.lower() != token2.lower():
+                print('Index {}: {} != {}'.format(idx, token1, token2))
+                return
+
+            diff.append(np.abs(i1-i2))
+
+        diff = np.array(diff)
+        diff_idx = np.argsort(diff)[::-1]
+        print("{:15}     Index   Label   Diff   i1     i2".format("Word"))
+        print("----------------------------------------------------------")
+        for j, idx in enumerate(diff_idx):
+            print("{:15}   {:>7d}   {:5}   {:.3f}  {:.3f}  {:.3f}".format(
+                    self.raw_data[idx1]['tokens'][idx],
+                    idx,
+                    self.raw_data[idx1]['labels'][idx],
+                    diff[idx],
+                    self.raw_data[idx1]['i_probs'][idx],
+                    self.raw_data[idx2]['i_probs'][idx]))
+            if j>=max_num:
+                break
+
+    def x_models(self, idx1, idx2, savepath=None):
+        if(self.scores[idx1]['count'] != self.scores[idx2]['count']):
+            print('two files do not have the same counts, {} != {}'.format(
+                    self.scores[idx1]['count'],
+                    self.scores[idx2]['count']))
+            return
+        count = self.scores[idx1]['count']
+        i_arr1 = self.raw_data[idx1]['i_probs']
+        i_arr2 = self.raw_data[idx2]['i_probs']
+        labels = self.raw_data[idx1]['labels']
+
+        errors1 = []
+        errors2 = []
+        errors_total = []
+
+        thresholds = np.linspace(0.05,0.95,19) # 0.05, 0.10, ..., 0.95
+        for threshold in thresholds:
+            error1 = 0
+            error2 = 0
+            for j in range(count):
+                if(i_arr1[j] < threshold and i_arr2[j] > threshold):
+                    error1 += 1
+                elif(i_arr1[j] > threshold and i_arr2[j] < threshold):
+                    error2 += 1
+            errors1.append(error1)
+            errors2.append(error2)
+            errors_total.append(error1 + error2)
+
+
+        plt.figure()
+        plt.plot(thresholds, errors1, '.-', label='sys1 predicts more erros')
+        plt.plot(thresholds, errors2, '.-', label='sys2 predicts more erros')
+        plt.plot(thresholds, errors_total, '.-', label='total erros')
+
+
+        plt.xlabel('Error Confidence')
+        plt.ylabel('Number of errors')
+        plt.title("System 1 vs System 2")
+        # plt.ylim([0.0, 1.0])
+        plt.xlim([0.0, 1.0])
+        plt.legend()
+
+        if savepath == None:
+            plt.show()
+        else:
+            plt.savefig(savepath)
+
 
 class ErrorCount(object):
     def __init__(self):

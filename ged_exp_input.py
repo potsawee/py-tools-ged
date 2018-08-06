@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 '''
 Create the ged-input files of different formats
 for DTAL transcription GED experiment

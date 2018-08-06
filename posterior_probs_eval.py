@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 '''
 Plot PR-curve for all files (ged-output) in the specified folder
 '''

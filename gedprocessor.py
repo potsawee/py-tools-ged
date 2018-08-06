@@ -153,8 +153,9 @@ class GedProcessor(object):
             if cur_w != prev_w:
                 processed.append(word)
             else: # repetition found!
-                # TODO: make sure this is right!
-                pass
+                # ???
+                if cur_l == 'i':
+                    processed.append(word)
 
             prev_w = cur_w
             prev_l = cur_l

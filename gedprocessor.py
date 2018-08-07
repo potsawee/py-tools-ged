@@ -46,6 +46,20 @@ class GedProcessor(object):
             processed.append(word)
         self.current = processed
 
+    def remove_partial(self, input=None):
+        processed = []
+        if input == None:
+            input = self.current
+
+        for word in input:
+            if word[0] == '\n':
+                processed.append(word)
+                continue
+            if ('%partial%' in word[0]):
+                continue
+            processed.append(word)
+        self.current = processed
+
     def period_only(self, input=None):
         punc_set = set(string.punctuation)
         processed = []
@@ -160,6 +174,21 @@ class GedProcessor(object):
             prev_w = cur_w
             prev_l = cur_l
 
+        self.current = processed
+
+    def remove_dm(self, input=None):
+        # discourse marker e.g. yeah, well, I mean, you know
+        processed = []
+        if input == None:
+            input = self.current
+
+        for word in input:
+            if word[0] == '\n':
+                processed.append(word)
+                continue
+            if (word[1] == 'DM'):
+                continue
+            processed.append(word)
         self.current = processed
 
     def write(self, outpath):

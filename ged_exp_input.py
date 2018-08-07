@@ -7,7 +7,7 @@ for DTAL transcription GED experiment
 [1] file0 + basiccase              => ### 1-Marek.tsv ###
 [2] file0 + truelowercase          => ### 2-TLC.tsv ###
 [3] file2 + period_only            => ### 3-NO-PUNC.tsv ###
-[4] file3 + remove_repetition      => ### 4-Remove-RE.tsv ###
+[4] file3 + remove_dm & remove_repetition      => ### 4-Remove-DM-RE.tsv ###
 '''
 import os
 import sys
@@ -28,6 +28,7 @@ def main():
     file0path = outdir + '/file0.tsv'
     os.makedirs(os.path.dirname(file0path), exist_ok=True)
     processor.remove_hesitation()
+    processor.remove_partial()
     file0 = processor.current
     processor.write(file0path)
 
@@ -46,8 +47,9 @@ def main():
     processor.period_only()
     processor.write(file3path)
 
-    #file4 - REMOVE-RE
+    #file4 - REMOVE-DM-RE
     file4path = outdir + '/file4.tsv'
+    processor.remove_dm()
     processor.remove_repetition()
     processor.write(file4path)
 

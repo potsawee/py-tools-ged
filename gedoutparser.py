@@ -309,11 +309,14 @@ class GedOutParser(object):
         errors2 = []
         errors_total = []
 
-        thresholds = np.linspace(0.05,0.95,19) # 0.05, 0.10, ..., 0.95
+        thresholds = np.linspace(0.05,1.0,20) # 0.05, 0.10, ..., 0.95, 1.00
         for threshold in thresholds:
             error1 = 0
             error2 = 0
             for j in range(count):
+                # there are four cases: (1) c-c (2) c-i (3) i-c (4) i-i
+                # but we are only interested in c-i and i-c i.e. when the two systems are different
+                # at a particular threshold => we want %of (#2+#3) / (#1+#2+#3#4)
                 if(i_arr1[j] < threshold and i_arr2[j] > threshold):
                     error1 += 1
                 elif(i_arr1[j] > threshold and i_arr2[j] < threshold):
@@ -322,15 +325,23 @@ class GedOutParser(object):
             errors2.append(error2)
             errors_total.append(error1 + error2)
 
+        errors1 = [e*100/count for e in errors1]
+        errors2 = [e*100/count for e in errors2]
+        errors_total = [e*100/count for e in errors_total]
+
 
         plt.figure()
-        plt.plot(thresholds, errors1, '.-', label='sys1 predicts more erros')
-        plt.plot(thresholds, errors2, '.-', label='sys2 predicts more erros')
-        plt.plot(thresholds, errors_total, '.-', label='total erros')
+        plt.plot(thresholds, errors1, '.-', label='sys1 = c & sys2 = i')
+        plt.plot(thresholds, errors2, '.-', label='sys1 = i & sys2 = c')
+        plt.plot(thresholds, errors_total, '.-', label='c-i OR i-c')
+
+        # Operating Point
+        # err_confidence1 = self.scores['threshold']
+        # err1 = errors1[thresholds[]]
 
 
         plt.xlabel('Error Confidence')
-        plt.ylabel('Number of errors')
+        plt.ylabel('Percent errors')
         plt.title("System 1 vs System 2")
         # plt.ylim([0.0, 1.0])
         plt.xlim([0.0, 1.0])

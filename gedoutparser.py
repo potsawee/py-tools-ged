@@ -127,6 +127,7 @@ class GedOutParser(object):
         score = {'total': total,
                 'count': count,
                 'error': error,
+                '%error': error/count,
                 'P': pr_dict['P'],
                 'R': pr_dict['R'],
                 'F05': pr_dict['F05'],
@@ -174,6 +175,7 @@ class GedOutParser(object):
             print('total:   {:d}'.format(score['total']))
             print('count:   {:d}'.format(score['count']))
             print('error:   {:d}'.format(score['error']))
+            print('%error:  {:.1f}%'.format(score['%error']*100))
             print('P:       {:.1f}%'.format(score['P']*100))
             print('R:       {:.1f}%'.format(score['R']*100))
             print('F0.5:    {:.1f}%'.format(score['F05']*100))
@@ -331,20 +333,45 @@ class GedOutParser(object):
 
 
         plt.figure()
-        plt.plot(thresholds, errors1, '.-', label='sys1 = c & sys2 = i')
         plt.plot(thresholds, errors2, '.-', label='sys1 = i & sys2 = c')
+        plt.plot(thresholds, errors1, '.-', label='sys1 = c & sys2 = i')
         plt.plot(thresholds, errors_total, '.-', label='c-i OR i-c')
 
         # Operating Point
-        # err_confidence1 = self.scores['threshold']
-        # err1 = errors1[thresholds[]]
-
+        # err_confidence1 = self.scores[idx1]['threshold']
+        # err1 = errors1[thresholds.tolist().index(err_confidence1)]
+        # err_confidence2 = self.scores[idx2]['threshold']
+        # err2 = errors2[thresholds.tolist().index(err_confidence2)]
+        # plt.plot((0, err_confidence1), (err1, err1), '-', color = '0.5')
+        # plt.plot((err_confidence1, err_confidence1), (0, err1), '-', color = '0.5')
+        # plt.plot((0, err_confidence2), (err2, err2), '-', color = '0.5')
+        # plt.plot((err_confidence2, err_confidence2), (0, err2), '-', color = '0.5')
 
         plt.xlabel('Error Confidence')
         plt.ylabel('Percent errors')
         plt.title("System 1 vs System 2")
         # plt.ylim([0.0, 1.0])
         plt.xlim([0.0, 1.0])
+        plt.legend()
+
+        if savepath == None:
+            plt.show()
+        else:
+            plt.savefig(savepath)
+
+    def histogram(self, indices, bin_num=100, savepath=None):
+        histogram = plt.figure()
+
+        bins = np.linspace(0, 1, bin_num)
+        for i in indices:
+            plt.hist(self.raw_data[i]['i_probs'], bins, alpha=0.5, label=self.names[i])
+
+        plt.xlabel('Probabilities (i_prob)')
+        plt.ylabel('Count')
+        # plt.xlim([0.5, 1.0])
+        # plt.ylim([0.0, 100])
+        plt.yscale('log', nonposy='clip')
+        plt.title("Histogram")
         plt.legend()
 
         if savepath == None:

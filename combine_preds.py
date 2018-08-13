@@ -32,9 +32,9 @@ def main():
     output = sys.argv[3]
     option = sys.argv[4]
 
-    # file1 = "/home/alta/BLTSpeaking/ged-pm574/attention-word/posterior/multihead/noattention-fcepub.ged.spell.v2.tsv"
-    # file2 = "/home/alta/BLTSpeaking/ged-pm574/attention-word/posterior/multihead/multihead10-fcepub.ged.spell.v2.tsv"
-    # output = "/home/alta/BLTSpeaking/ged-pm574/attention-word/posterior/multihead/no-attention-multihead10-avg.ged.spell.v2.tsv"
+    # file1 = "/home/alta/BLTSpeaking/ged-pm574/attention-word/posterior/multihead-v2/noattention-fcepub.ged.spell.v2.tsv"
+    # file2 = "/home/alta/BLTSpeaking/ged-pm574/attention-word/posterior/multihead-v2/multihead1-fcepub.ged.spell.v2.tsv"
+    # output = "/home/alta/BLTSpeaking/ged-pm574/attention-word/posterior/multihead-v2/no-attention-multihead1-avg.ged.spell.v2.tsv"
 
     with open(file1, 'r') as f1:
         lines1 = f1.readlines()
@@ -42,10 +42,14 @@ def main():
         lines2 = f2.readlines()
 
     assert len(lines1) == len(lines2), "Both files must have the same number of lines. {} != {}".format(len(lines1), len(lines2))
+    write_avg(lines1, lines2, output)
 
-    if(option == "mean"):
+    # Arithmetic  mean (AM)
+    if(option == "am"):
         write_avg(lines1, lines2, output)
         print("Combining Mean Average done!")
+
+    print("combine done: {}".format(output))
 
 if __name__ == '__main__':
     main()

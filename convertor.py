@@ -1,6 +1,7 @@
 class Convertor(object):
     def __init__(self):
-        pass
+        self.mapping_file1 = '/home/alta/BLTSpeaking/convert-v2/4/lib/spId/BLXXXeval3-map.lst'
+        self.grading_file1 = '/home/alta/BLTSpeaking/grd-graphemic-kmk/GKJ1-HD3/kaldi-mar2017/grader/BLXXXeval3/tg_16.0_0.0_mbr/F3/speaker/data/expert-grades.txt'
 
     def read_map(self, path):
         with open(path, 'r') as f:
@@ -23,7 +24,7 @@ class Convertor(object):
         for line in lines:
             id, score = line.split()
             score = float(score) / 5 # scale down from 30
-            if(score < 2.0 and score > 0.0):
+            if(score < 2.0 and score >= 0.0):
                 grade = 'A1'
             elif(score < 3.0):
                 grade = 'A2'
@@ -31,7 +32,7 @@ class Convertor(object):
                 grade = 'B1'
             elif(score < 5.0):
                 grade = 'B2'
-            elif(score < 6.0):
+            elif(score <= 6.0):
                 grade = 'C'
             else:
                 grade = '?'
@@ -39,11 +40,10 @@ class Convertor(object):
             self.cued_to_grade[id] = grade
 
 def main():
-    mapping_file = '/home/alta/BLTSpeaking/convert-v2/4/lib/spId/BLXXXeval3-map.lst'
-    grading_file = '/home/alta/BLTSpeaking/grd-graphemic-kmk/GKJ1-HD3/kaldi-mar2017/grader/BLXXXeval3/tg_16.0_0.0_mbr/F3/speaker/data/expert-grades.txt'
+
     convertor = Convertor()
-    convertor.read_map(mapping_file)
-    convertor.read_grade(grading_file)
+    convertor.read_map(convertor.mapping_file1)
+    convertor.read_grade(convertor.grading_file1)
 
     while(True):
         ce_id = input("CE ID: ")

@@ -8,12 +8,18 @@ import os
 from gedoutparser import GedOutParser
 
 def main():
-    if(len(sys.argv) != 2):
-        print("Usage: python3 posterior_probs_eval.py dir")
+    if len(sys.argv) < 2:
+        print("Usage: python3 posterior_probs_eval.py dir [skip_options]")
         return
 
 
     ged_out_path = sys.argv[1]
+
+    # if this argument exists do not skip any word!
+    if len(sys.argv) == 3:
+        skip_options = False
+    else:
+        skip_options = True
 
     files = [os.path.join(ged_out_path, f) for f in os.listdir(ged_out_path) if (os.path.isfile(os.path.join(ged_out_path, f))) and '.tsv' in f]
     print(files)
@@ -33,11 +39,14 @@ def main():
     # ----------------------------------- #
 
     for i, file in enumerate(files):
-        name = os.path.basename(file)
-        if num_columns == 5: #DTAL/ASR
-            parser.read(file, name=name, skip_options=[1,3,4])
+        name = os.path.basename(file).split(".")[0]
+        if skip_options == False:
+            parser.read(file, name=name)
         else:
-            parser.read(file, name=name, skip_options=[1])
+            if num_columns == 5: #DTAL/ASR
+                parser.read(file, name=name, skip_options=[1,3,4])
+            else:
+                parser.read(file, name=name, skip_options=[1])
 
     parser.print_scores()
     parser.plot_pr_curves(savepath=exp_path+'/pr-curve.png')

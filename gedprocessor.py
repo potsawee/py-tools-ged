@@ -1,5 +1,5 @@
 import string
-import pdb
+# import pdb
 
 class GedProcessor(object):
     def __init__(self, columns=['token', 'error_type', 'label']):
@@ -62,6 +62,9 @@ class GedProcessor(object):
         self.current = processed
 
     def period_only(self, input=None):
+        '''
+        remove all punctuations without propagating 'i' labels
+        '''
         punc_set = set(string.punctuation)
         processed = []
         if input == None:
@@ -73,6 +76,32 @@ class GedProcessor(object):
                 continue
             if (word[0] in punc_set and word[0] != '.'):
                 continue
+            processed.append(word)
+        self.current = processed
+
+    def remove_punctuation(self, input=None):
+        '''
+        remove punctuation and if there is incorrect
+        propagate the 'i' label to the previous word
+        note that this method still removes '.'
+        @potsawee 30 Aug 2018
+        '''
+        punc_set = set(string.punctuation)
+        processed = []
+        if input == None:
+            input = self.current
+
+        for word in input:
+            if word[0] == '\n':
+                processed.append(word)
+                continue
+            if word[0] in punc_set:
+                if word[-1] == 'c':
+                    continue
+                else: # word[-1] == 'i'
+                    # propagate the 'i' label to the previous word
+                    processed[-1][-1] = 'i'
+                    continue
             processed.append(word)
         self.current = processed
 

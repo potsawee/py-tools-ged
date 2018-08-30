@@ -57,7 +57,8 @@ def main():
 
     #file3 - NO-PUNC
     file3path = outdir + '/file3.tsv'
-    processor.period_only()
+    # processor.period_only()
+    processor.remove_punctuation()
     processor.write(file3path)
 
     #file4-1 - REMOVE-DM

@@ -47,7 +47,9 @@ def main():
 
     # file3
     file3 = outdir + '/' + name + '.nopunc.' + extension
-    processor.period_only(input=processor.current)
+    # processor.period_only(input=processor.current) # .period_only remove punc without propagating 'i'
+    processor.remove_punctuation(input=processor.current)
+
     processor.write(file3)
 
 

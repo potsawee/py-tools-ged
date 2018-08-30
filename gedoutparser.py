@@ -16,9 +16,9 @@ punc_set = set(string.punctuation)
 # when reading a file => need to have Recall_overall & Recall_ASR
 
 class GedOutParser(object):
-'''
-This class is implemented for reading/parsing the GED output file
-'''
+    '''
+    This class is implemented for reading/parsing the GED output file
+    '''
     def __init__(self, columns=['token', 'error_type', 'label', 'c_prob', 'i_prob']):
         self.columns = columns
         self.num_columns = len(columns)

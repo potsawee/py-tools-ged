@@ -1,20 +1,20 @@
 #!/usr/bin/python3
 """
 Find the percentage of any words being incorrect in a given .ged.tsv file - P(word == 'i')
-    
+
     File Format - First Field == word / Last Field == label e.g.:
     she     c
     like    i
     cats    c
-    
+
 Args:
     filepath: path the the target .ged.tsv file
     min_count: (optional default = 20) only print words appearing more than min_count
-    
+
 Output:
     the result will be printed out to the terminal e.g.
     linux> python3 find_i.py /home/alta/BLTSpeaking/ged-pm574/artificial-error/lib/ami-work/ami6.ged.tsv
-    
+
     Word           : %Incor: Count
     ----------------------------------------------------------
     <DEL>          : 1.000:  1205
@@ -24,7 +24,7 @@ Output:
     occured        : 1.000:    23
     *emp           : 1.000:    23
     cording        : 1.000:    52
-    
+
 """
 
 import sys
@@ -73,14 +73,14 @@ def main():
 
     sorted_words_list = reversed(sorted(words_list.items(), key=operator.itemgetter(1)))
 
-    counter = 0
-    print("{:15}: {:.6}: {:5}".format("Word","%Incorrect","Count"))
+    # counter = 0
+    print("{:15}| {:.6}| {:5}".format("Word","%Incorrect","Count"))
     print("----------------------------------------------------------")
     for items in sorted_words_list:
         word = items[0]
         err = items[1]
-        print("{:15}: {:.3f}: {:5d}".format(word,err,words_dict[word]['count']))
-        counter += 1
+        print("{:15}| {:.3f} | {:5d}".format(word,err,words_dict[word]['count']))
+        # counter += 1
         # if counter % 100 == 0:
             # input("continue?")
 

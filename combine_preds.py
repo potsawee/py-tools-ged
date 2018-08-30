@@ -1,4 +1,17 @@
 #!/usr/bin/python3
+'''
+Combine the predictions of TWO ged output files
+
+Args:
+    file1: first ged output
+    file2: second ged output 
+    output: combined ged output
+    option: combining method e.g. am = Arithmetic Mean
+    
+Return:
+    Combined GED output at 'output'
+'''
+
 import sys
 
 def write_avg_am(lines1, lines2, output):
@@ -13,6 +26,26 @@ def write_avg_am(lines1, lines2, output):
 
             c_avg = 0.5 * ( float(items1[-2].strip(':c')) + float(items2[-2].strip(':c')) )
             i_avg = 0.5 * ( float(items1[-1].strip(':i')) + float(items2[-1].strip(':i')) )
+
+            new_line = '\t'.join(items1[:-2])
+            new_line += '\tc:{:.7f}'.format(c_avg)
+            new_line += '\ti:{:.7f}'.format(i_avg)
+            new_line += '\n'
+
+            f.write(new_line)
+
+def write_avg_gm(lines1, lines2, output):
+    with open(output, 'w') as f:
+        for l1, l2 in zip(lines1, lines2):
+            if(l1 == '\n' and l2 == '\n'):
+                f.write('\n')
+                continue
+
+            items1 = l1.split()
+            items2 = l2.split()
+
+            i_avg = ( float(items1[-1].strip(':i')) * float(items2[-1].strip(':i')) ) / ( float(items1[-1].strip(':i')) + float(items2[-1].strip(':i')) )
+            c_avg = 1.0 - i_avg
 
             new_line = '\t'.join(items1[:-2])
             new_line += '\tc:{:.7f}'.format(c_avg)
@@ -72,6 +105,10 @@ def main():
     # Arithmetic  mean (AM)
     if(option == "am"):
         write_avg_am(lines1, lines2, output)
+        print("Combining Mean Average done!")
+    # Geometric mean (GM)
+    elif(option == "gm"):
+        write_avg_gm(lines1, lines2, output)
         print("Combining Mean Average done!")
     elif(option == "my2"):
         write_avg_2(lines1, lines2, output)

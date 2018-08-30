@@ -16,6 +16,9 @@ punc_set = set(string.punctuation)
 # when reading a file => need to have Recall_overall & Recall_ASR
 
 class GedOutParser(object):
+'''
+This class is implemented for reading/parsing the GED output file
+'''
     def __init__(self, columns=['token', 'error_type', 'label', 'c_prob', 'i_prob']):
         self.columns = columns
         self.num_columns = len(columns)
@@ -78,7 +81,7 @@ class GedOutParser(object):
                 'threshold': threshold}
 
     def read(self, path, name=None, skip_options=[]):
-        data = pd.read_csv(path, delim_whitespace=True, header=None, quoting=csv.QUOTE_NONE)
+        data = pd.read_csv(path, delim_whitespace=True, header=None, quoting=csv.QUOTE_NONE, na_filter=False)
         assert(self.num_columns == len(data.columns))
         data.columns = self.columns
 
@@ -107,6 +110,9 @@ class GedOutParser(object):
                     continue
             if 4 in skip_options: # partial
                 if '%partial%' in row['token']:
+                    continue
+            if 5 in skip_options: # </s> tag
+                if row['token'] == '</s>':
                     continue
 
             tokens.append(row['token'])

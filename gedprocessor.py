@@ -1,4 +1,5 @@
 import string
+import pdb
 
 class GedProcessor(object):
     def __init__(self, columns=['token', 'error_type', 'label']):
@@ -176,6 +177,45 @@ class GedProcessor(object):
 
         self.current = processed
 
+    def remove_re(self, input=None):
+        # to remove those marked as RE
+        # keep REC
+        processed = []
+        if input == None:
+            input = self.current
+
+        for word in input:
+            if word[0] == '\n':
+                processed.append(word)
+                continue
+            if 'RE' in word[1]:
+                if 'REC' not in word[1]:
+                    continue
+                else:
+                    pass
+            processed.append(word)
+
+        self.current = processed
+
+    def remove_fs(self, input=None):
+        # to remove those marked as FS
+        # keep FSC
+        processed = []
+        if input == None:
+            input = self.current
+
+        for word in input:
+            if word[0] == '\n':
+                processed.append(word)
+                continue
+            if 'FS' in word[1]:
+                if 'FSC' not in word[1]:
+                    continue
+                else:
+                    pass
+            processed.append(word)
+
+        self.current = processed
     def remove_dm(self, input=None):
         # discourse marker e.g. yeah, well, I mean, you know
         processed = []
@@ -186,7 +226,7 @@ class GedProcessor(object):
             if word[0] == '\n':
                 processed.append(word)
                 continue
-            if (word[1] == 'DM'):
+            if 'DM' in word[1]:
                 continue
             processed.append(word)
         self.current = processed

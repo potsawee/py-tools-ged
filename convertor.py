@@ -1,4 +1,8 @@
 class Convertor(object):
+'''
+- To convert between CUED <=> Cambridge English ID 
+- To convert from an ID to its corresponding grade
+'''
     def __init__(self):
         self.mapping_file1 = '/home/alta/BLTSpeaking/convert-v2/4/lib/spId/BLXXXeval3-map.lst'
         self.grading_file1 = '/home/alta/BLTSpeaking/grd-graphemic-kmk/GKJ1-HD3/kaldi-mar2017/grader/BLXXXeval3/tg_16.0_0.0_mbr/F3/speaker/data/expert-grades.txt'
@@ -46,11 +50,16 @@ def main():
     convertor.read_grade(convertor.grading_file1)
 
     while(True):
-        ce_id = input("CE ID: ")
-        cued_id = convertor.ce_to_cued[ce_id]
-        grade = convertor.cued_to_grade[cued_id]
+         ce_id = input("CE ID: ")
+         cued_id = convertor.ce_to_cued[ce_id]
+         grade = convertor.cued_to_grade[cued_id]
+    
+         print("{}\t{}\t{}".format(ce_id, cued_id, grade))
 
-        print("{}\t{}\t{}".format(ce_id, cued_id, grade))
+    #while(True):
+    #    cued_id = input("CUED ID: ")
+    #    ce_id = convertor.cued_to_ce[cued_id]
+    #    print(ce_id)
 
 if __name__ == '__main__':
     main()

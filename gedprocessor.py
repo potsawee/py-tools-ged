@@ -56,7 +56,7 @@ class GedProcessor(object):
             if word[0] == '\n':
                 processed.append(word)
                 continue
-            if ('%partial%' in word[0]):
+            if '%partial%' in word[0] or 'PW' in word[1]:
                 continue
             processed.append(word)
         self.current = processed

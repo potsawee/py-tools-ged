@@ -13,6 +13,9 @@ Output:
     [2] file0 + truelowercase          => ### file2.tsv / 2-TLC.tsv ###
     [3] file2 + period_only            => ### file3.tsv / 3-NO-PUNC.tsv ###
     [4] file3 + Remove DM, RE, FS      => ### file4.tsv / 4-Remove-DM-RE-FS.tsv ###
+
+Note that:
+    if the experiment is to incorperate 'ASR confidence', please manually change the processor to have another field
 '''
 
 import os
@@ -28,9 +31,9 @@ def main():
     outdir = sys.argv[2]
 
 
-    # processor = GedProcessor(columns=['token', 'error_type', 'label'])
+    processor = GedProcessor(columns=['token', 'error_type', 'label'])
     # To run an ASR experiment having the confidence column use this:
-    processor = GedProcessor(columns=['token', 'error_type', 'confidence', 'label'])
+    # processor = GedProcessor(columns=['token', 'error_type', 'confidence', 'label'])
 
     processor.read(original)
 

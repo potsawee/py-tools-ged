@@ -4,17 +4,18 @@ Find False Positives above the threshold in the target file
 
 Args:
     file: Target file (the GED output)
-    threshold: i_prob threshold above which word is predicted as incorrect 
-    
+    threshold: i_prob threshold above which word is predicted as incorrect
+
 Return:
     print out a list of the the false positives to the terminal
     linux> python3 false-positive.py clctraining-v3/dtal-exp-GEM4-1/output/4-REMOVE-DM-RE-FS.tsv 0.9
-    
+
     ---------------------------------------
-    File: clctraining-v3/dtal-exp-GEM4-1/output/4-REMOVE-DM-RE-FS.tsv
+    File: posterior/version7-2-combine/combine-1and3.tsv
     ---------------------------------------
     threshold: 0.9
-    count: 245
+    false postive count: 6
+    precision = 89.1 | recall = 0.5
     ---------------------------------------
     ---------------------------------------
 
@@ -30,7 +31,7 @@ Return:
 
     </s>    _       c       c:0.9999906     i:9.360367e-06
 
-    
+
 '''
 
 import sys
@@ -47,6 +48,10 @@ def main():
         lines = f.readlines()
 
     fp_list = []
+    true_pos = 0
+    true_neg = 0
+    false_pos = 0
+    false_neg = 0
     for i, line in enumerate(lines):
         if line == "\n":
             continue
@@ -57,25 +62,33 @@ def main():
         label = items[-3]
         i_prob = float(items[-1].strip('i:'))
 
-        if len(items) == 6:
-            if items[2] == '_':
-                confidence = 1.0
-            else:
-                confidence = float(items[2])
-        else:
-            confidence = 1.0
+        if word == "%unclear%" or "%partial%" in word or word == "</s>":
+            continue
 
-        if i_prob > threshold and label == 'c' and confidence > 0.0:
-            # we do not score %unclear%
-            if word == "%unclear%":
-                continue
+        if i_prob > threshold and label == 'c':
             fp_list.append(i)
+
+        if i_prob > threshold:
+            if label == 'i':
+                true_pos += 1
+            else:
+                false_pos += 1
+        else:
+            if label == 'i':
+                false_neg += 1
+            else:
+                true_neg += 1
+
+    precision = true_pos / (true_pos + false_pos)
+    recall = true_pos / (true_pos + false_neg)
+    f05 = 1.25 * (precision*recall)/(0.25*precision + recall)
 
     print("---------------------------------------")
     print("File:", file)
     print("---------------------------------------")
     print("threshold:",threshold)
-    print("count:",len(fp_list))
+    print("false postive count:",len(fp_list))
+    print("precision = {:.1f}% | recall = {:.1f}% | f0.5 = {:.1f}%".format(precision*100, recall*100, f05*100))
     print("---------------------------------------")
 
     for i in fp_list:

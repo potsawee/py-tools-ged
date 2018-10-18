@@ -85,6 +85,14 @@ class GedProcessor(object):
         propagate the 'i' label to the previous word
         note that this method still removes '.'
         @potsawee 30 Aug 2018
+
+        @potsawee 18 Oct 2018
+        Bug:
+            - since all start tags are the same object,
+            when error got propagated back to one of the start tag
+            all of the start tags' labels change to 'i'
+            and this caused the bug in .nopunc in clctraining-v3
+
         '''
         punc_set = set(string.punctuation)
         processed = []
@@ -100,8 +108,17 @@ class GedProcessor(object):
                     continue
                 else: # word[-1] == 'i'
                     # propagate the 'i' label to the previous word
-                    processed[-1][-1] = 'i'
+
+                    # ----- need to check if the ------ #
+                    # previous word is start tag or not #
+                    if processed[-1][0] == processed[0][0]:
+                        pass
+                    # ---------------------- $
+                    else:
+                        processed[-1][-1] = 'i'
+
                     continue
+
             processed.append(word)
         self.current = processed
 

@@ -106,7 +106,7 @@ class GedOutParser(object):
                 if row['token'] in punc_set:
                     continue
             if 3 in skip_options: # unclear
-                if row['token'] == '%unclear%':
+                if row['token'] == '%unclear%' or row['token'] == '!!unk':
                     continue
             if 4 in skip_options: # partial
                 if '%partial%' in row['token']:

@@ -1,5 +1,5 @@
 import string
-# import pdb
+import pdb
 
 class GedProcessor(object):
     def __init__(self, columns=['token', 'error_type', 'label']):
@@ -22,12 +22,15 @@ class GedProcessor(object):
                 original.append(['\n'])
                 continue
             items = line.split()
+
             if(len(items) != self.num_columns):
                 print("Skip: Line {} - invalid number of fields\n=> {}".format(i,line))
                 continue
-            if(items[-1] != 'c' and items[-1] != 'i'):
-                print("Skip: Line {} - invalid label\n=> {}".format(i, line))
-                continue
+
+            if self.num_columns > 1:
+                if(items[-1] != 'c' and items[-1] != 'i'):
+                    print("Skip: Line {} - invalid label\n=> {}".format(i, line))
+                    continue
 
             original.append(items)
             self.original = original
@@ -285,3 +288,44 @@ class GedProcessor(object):
                 else:
                     file.write('\t'.join(word) + '\n')
         print("writing {} done!".format(outpath))
+
+    def write_gec(self, outpath, start_tag=None, end_tag=None, uppercase=False):
+        '''
+        one sentence per line for gec task
+        '''
+        with open(outpath, 'w') as file:
+            words = []
+            for word in self.current:
+                if len(word) == 1 and word[0] == '\n':
+                    if len(words) > 0:
+                        _sentence = [x[0] for x in words]
+                        sentence = ' '.join(_sentence)
+                        if uppercase:
+                            sentence = sentence.upper()
+                        if start_tag == None and end_tag == None:
+                            file.write(sentence + '\n')
+                        else:
+                            file.write(start_tag + ' ' + sentence + ' ' + end_tag + '\n')
+                    else:
+                        pass
+                    words = []
+                elif word[0] == '</s>':
+                    continue
+                else:
+                    words.append(word)
+        print("writing {} done!".format(outpath))
+
+    def map_unclear(self, input=None):
+        processed = []
+        if input == None:
+            input = self.current
+
+        for word in input:
+            if word[0] == '\n':
+                processed.append(word)
+                continue
+            if (word[0] == '%unclear%'):
+                processed.append(['!!unk', 'UNK', 'c'])
+                continue
+            processed.append(word)
+        self.current = processed

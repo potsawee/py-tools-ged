@@ -12,6 +12,7 @@
 import subprocess
 import pdb
 import math
+import sys
 
 class PplParser(object):
     def __init__(self):
@@ -38,7 +39,7 @@ class PplParser(object):
         print("finish cmd")
         return p.returncode
 
-    def parse_output(self, pplpath, outpath):
+    def parse_output(self, pplpath):
         eos = "</s>"
         with open(pplpath) as file:
             lines = file.readlines()
@@ -59,14 +60,26 @@ class PplParser(object):
             else:
                 sent_log_prob += math.log(prob)
                 word_count += 1
-        with open(outpath, 'w') as file:
-            for i, logprob in enumerate(sent_log_probs):
-                file.write("rank {:2d}th:  {:.5f}\n".format(i+1, logprob))
-            
+
+        # with open(outpath, 'w') as file:
+        #     for i, logprob in enumerate(sent_log_probs):
+        #         file.write("rank {:2d}th:  {:.5f}\n".format(i+1, logprob))
+        for logprob in sent_log_probs:
+            print(logprob)
 
         # for line in lines:
         #     if
         # probabilities = []
-if __name__ == '__main__':
+
+def main():
+    if len(sys.argv) != 2:
+        print("usage: python3 ppl_parser.py input")
+        return
+
+    path = sys.argv[1]
+
     p = PplParser()
-    p.parse_output("tmp/abcd.txt", "tmp/logprob.txt")
+    p.parse_output(path)
+
+if __name__ == '__main__':
+    main()

@@ -10,8 +10,9 @@
 # set TESTFILE=$1
 # set OUTPUTFILE=$2
 
-set TESTFILE=/home/alta/BLTSpeaking/ged-pm574/nmt-exp/swb-work/backtrans-baseline-beam10/valid_asr_withI.out
-set OUTPUTFILE=/home/alta/BLTSpeaking/ged-pm574/nmt-exp/swb-work/backtrans-baseline-beam10/valid_asr_withI.ppl
+set FILE=/home/alta/BLTSpeaking/ged-pm574/nmt-exp/swb-work/fluency/train_asr_withI
+set TESTFILE=$FILE.stag
+set OUTPUTFILE=$FILE.ppl
 
 set RNNLMBIN=/home/dawna/material/Tools_V1.3/lbin/rnnlm
 set MODEL=/home/alta/BLTSpeaking/ged-pm574/gec-lm/train-rnnlm/rnnlms/v3/one-billion/RNN_weight.OOS.cuedrnnlm.rnnlm.300.300/train_LM.wgt.iter9

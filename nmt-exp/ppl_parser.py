@@ -58,9 +58,8 @@ class PplParser(object):
                 sent_log_prob = 0
                 word_count = 0
             else:
-                sent_log_prob += math.log(prob)
+                sent_log_prob += math.log(prob + 1e-100)
                 word_count += 1
-
         # with open(outpath, 'w') as file:
         #     for i, logprob in enumerate(sent_log_probs):
         #         file.write("rank {:2d}th:  {:.5f}\n".format(i+1, logprob))
@@ -71,15 +70,55 @@ class PplParser(object):
         #     if
         # probabilities = []
 
+    def beam2one(self, beampath, scorepath, beamwidth=10):
+        with open(beampath, 'r') as file:
+            sentences = file.readlines()
+        with open(scorepath, 'r') as file:
+            scores = file.readlines()
+
+        assert (len(sentences) == len(scores)), "sentences != scores"
+
+        best_sentences = []
+
+        counter = 0
+        lowest_score = 0
+        best_sentence = None
+
+        for sent, score in zip(sentences, scores):
+            sent = sent.strip()
+            score = float(score)
+            if score < lowest_score:
+                lowest_score = score
+                best_sentence = sent
+            else:
+                pass
+
+            counter += 1
+
+            if counter == beamwidth:
+                best_sentences.append(best_sentence)
+                counter = 0
+                lowest_score = 0
+                best_sentence = None
+
+        for sent in best_sentences:
+            print(sent)
+
 def main():
-    if len(sys.argv) != 2:
-        print("usage: python3 ppl_parser.py input")
+    if len(sys.argv) < 2:
+        print("usage: python3 ppl_parser.py [1/2]")
         return
 
-    path = sys.argv[1]
-
+    option = int(sys.argv[1])
     p = PplParser()
-    p.parse_output(path)
+
+    if option == 1:
+        path = sys.argv[2]
+        p.parse_output(path)
+    elif option == 2:
+        beampath = sys.argv[2]
+        scorepath = sys.argv[3]
+        p.beam2one(beampath, scorepath)
 
 if __name__ == '__main__':
     main()
